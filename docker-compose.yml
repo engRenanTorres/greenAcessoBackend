@@ -1,0 +1,76 @@
+version: '3.3'
+
+#acessar o bash do app: docker-compose start  + docker-compose exec app bash
+services:
+  dbgreen:
+    #platform: linux/arm64/v8
+    image: mysql:8.0
+    container_name: greenmysql
+    networks:
+      - development-network
+    restart: always
+    environment:
+      MYSQL_DATABASE: greendb
+      MYSQL_ROOT_PASSWORD: dbgreen
+    volumes:
+      - ./.docker/volumes/licitar:/var/lib/mysql
+    tty: true
+    ports:
+      - 3306:3306
+
+  dbtestgreen:
+    #platform: linux/arm64/v8
+    image: mysql:8.0
+    container_name: greenmysqltest
+    networks:
+      - development-network
+    restart: always
+    environment:
+      MYSQL_DATABASE: licitarDB
+      MYSQL_ROOT_PASSWORD: dblicitar
+    volumes:
+      - ./.docker/volumes/licitar:/var/lib/mysql
+    tty: true
+    ports:
+      - 3308:3306
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pmagreen
+    networks:
+      - development-network
+    links:
+      - dbgreen
+    environment:
+      PMA_HOST: dbgreen
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    depends_on:
+      - dbgreen
+    ports:
+      - 8081:80
+
+  app:
+    #platform: linux/arm64/v8
+    #command: bash -c 'while !</dev/tcp/db/3306; do sleep 1; done; node dist/main;'
+    #for mac
+    command: sh -c 'sleep 8; node dist/main;'
+    depends_on:
+      - dbgreen
+    build: .
+    #entrypoint: .docker/entrypoint.sh
+    container_name: greenBackend
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+      - 5555:5555
+    volumes:
+      - ~/dev/.docker/volumes/licitar:/home/node/app
+    networks:
+      - development-network
+
+networks:
+  development-network:
+    driver: bridge
