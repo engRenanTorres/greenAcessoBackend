@@ -10,11 +10,11 @@ datasource db {
 model Boletos {
   id              Int       @id @default(autoincrement())
   nome_sacado     String?   @db.VarChar(255)
-  id_lote         Int
   valor           Decimal?  @db.Decimal(10, 0)
   linha_digitavel String?   @db.VarChar(255)
   ativo           Boolean?  @default(false)
   criado_em       DateTime? @default(now()) @db.Timestamp(0)
+  id_lote         Int
   lotes           Lotes    @relation(fields: [id_lote], references: [id], onUpdate: Restrict, map: "boletos_lotes_fk")
 
   @@index([id_lote], map: "boletos_lotes_fk")

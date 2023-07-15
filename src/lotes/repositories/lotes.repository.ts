@@ -8,8 +8,21 @@ import { LoteEntity } from '../entities/lote.entity';
 export class LotesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findOneByNameNumberString(name: string) {
+    return await this.prisma.lotes.findMany({
+      where: {
+        nome: {
+          endsWith: name,
+        },
+      },
+    });
+  }
+
   async create(createLoteDto: CreateLoteDto): Promise<LoteEntity> {
     return await this.prisma.lotes.create({ data: createLoteDto });
+  }
+  async createManyFullEntity(createLoteDto: LoteEntity[]): Promise<unknown> {
+    return await this.prisma.lotes.createMany({ data: createLoteDto });
   }
 
   async findAll(): Promise<LoteEntity[]> {
@@ -17,7 +30,10 @@ export class LotesRepository {
   }
 
   async findOne(id: number): Promise<LoteEntity> {
-    return await this.prisma.lotes.findUnique({ where: { id: id } });
+    return await this.prisma.lotes.findUnique({
+      where: { id: id },
+      include: { boletos: true },
+    });
   }
 
   async update(id: number, updateLoteDto: UpdateLoteDto): Promise<LoteEntity> {

@@ -7,5 +7,6 @@ import { LotesRepository } from './repositories/lotes.repository';
 @Module({
   controllers: [LotesController],
   providers: [LotesService, PrismaService, LotesRepository],
+  exports: [LotesService],
 })
 export class LotesModule {}
