@@ -10,6 +10,7 @@ COPY package*.json ./
 # Install the project dependencies
 #RUN yarn install
 RUN npm install
+
 #ci --only=production
 
 # Copy the application code to the container
@@ -18,6 +19,9 @@ COPY . .
 # Build the application
 #RUN yarn build
 RUN npm run build
+RUN apk add --no-cache bash
+
+RUN npm install -g @nestjs/cli
 
 RUN rm -r node_modules
 RUN npm install --omit=dev

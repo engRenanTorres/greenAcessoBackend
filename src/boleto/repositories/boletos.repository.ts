@@ -3,6 +3,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBoletoDto } from '../dto/create-boleto.dto';
 import { UpdateBoletoDto } from '../dto/update-boleto.dto';
 import { BoletoEntity } from '../entities/boleto.entity';
+import { GetBoletoQuery } from '../dto/get-query';
+
+class findAllFilter {
+  nome_sacado?: { contains: string };
+  valor?: number;
+  id_lote?: number;
+}
 
 @Injectable()
 export class BoletosRepository {
@@ -16,6 +23,21 @@ export class BoletosRepository {
 
   async findAll(): Promise<BoletoEntity[]> {
     return await this.prisma.boletos.findMany();
+  }
+  async findAllWithFilters({
+    nome,
+    valor,
+    id_lote,
+  }: GetBoletoQuery): Promise<BoletoEntity[]> {
+    const query = new findAllFilter();
+    if (nome !== undefined) query.nome_sacado = { contains: nome };
+    if (valor !== undefined) query.valor = +valor;
+    if (id_lote !== undefined) query.id_lote = +id_lote;
+    return await this.prisma.boletos.findMany({
+      where: {
+        ...query,
+      },
+    });
   }
 
   async findOne(id: number): Promise<BoletoEntity> {

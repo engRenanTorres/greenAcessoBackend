@@ -3,23 +3,24 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  //Patch,
   Param,
-  Delete,
+  //Delete,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
   FileTypeValidator,
+  Query,
 } from '@nestjs/common';
 import { BoletoService } from './boleto.service';
 import { CreateBoletoDto } from './dto/create-boleto.dto';
-import { UpdateBoletoDto } from './dto/update-boleto.dto';
-import { ApiTags } from '@nestjs/swagger';
+//import { UpdateBoletoDto } from './dto/update-boleto.dto';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { PDFDocument } from 'pdf-lib';
-import { createWriteStream } from 'fs';
+import { GetBoletoQuery } from './dto/get-query';
+import { CustomParsers } from '../helpers/custom-parser.helper';
 
-@Controller('boleto')
+@Controller('api/boleto')
 @ApiTags('Boletos')
 export class BoletoController {
   constructor(private readonly boletoService: BoletoService) {}
@@ -39,7 +40,6 @@ export class BoletoController {
     file: Express.Multer.File,
   ) {
     return this.boletoService.insertManyFromCsv(file.buffer.toString());
-    //return this.boletoService.insertManyFromCsv(boletosCsv);
   }
 
   @Post('upload-pdf')
@@ -52,44 +52,39 @@ export class BoletoController {
     )
     file: Express.Multer.File,
   ) {
-    const pdfDoc = await PDFDocument.load(file.buffer);
-
-    const totalPages = pdfDoc.getPageCount();
-    for (let i = 0; i < totalPages; i++) {
-      const newPdfDoc = await PDFDocument.create();
-      const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
-      newPdfDoc.addPage(copiedPage);
-
-      const boletos = await this.boletoService.findAll();
-      const outputFilePath = `uploads/boletos/${boletos[i].id}.pdf`;
-      const pdfBytes = await newPdfDoc.save();
-
-      const ws = createWriteStream(outputFilePath);
-      ws.write(pdfBytes);
-
-      //fs.writeFileSync(outputFilePath, pdfBytes);
-    }
-
-    return { message: 'Arquivo PDF recebido e páginas salvas com sucesso!' };
+    return await this.boletoService.uploadBoletosPdf(file.buffer);
   }
 
   @Get()
-  findAll() {
-    return this.boletoService.findAll();
+  @ApiQuery({ name: 'nome', required: false })
+  @ApiQuery({ name: 'valor', required: false })
+  @ApiQuery({ name: 'id_lote', required: false })
+  @ApiQuery({
+    name: 'relatorio',
+    description: 'Opcional. Mas se for usada só aceita o valor 1',
+    required: false,
+  })
+  async findAll(@Query() query: GetBoletoQuery) {
+    const boletos = await this.boletoService.findAll(query);
+    if (+query.relatorio !== 1) return boletos;
+    return CustomParsers.boletosEntityToBase64(boletos);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.boletoService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBoletoDto: UpdateBoletoDto) {
+  /*@Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateBoletoDto: UpdateBoletoDto,
+  ) {
     return this.boletoService.update(+id, updateBoletoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.boletoService.remove(+id);
-  }
+  } */
 }

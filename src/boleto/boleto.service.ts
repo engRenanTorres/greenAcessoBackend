@@ -5,6 +5,9 @@ import { BoletosRepository } from './repositories/boletos.repository';
 import { BoletoEntity } from './entities/boleto.entity';
 import { BoletoRaw, CustomParsers } from '../helpers/custom-parser.helper';
 import { LotesService } from '../lotes/lotes.service';
+import { PDFDocument } from 'pdf-lib';
+import { createWriteStream } from 'fs';
+import { GetBoletoQuery } from './dto/get-query';
 
 @Injectable()
 export class BoletoService {
@@ -35,12 +38,39 @@ export class BoletoService {
     );
     return await this.boletoRepository.createMany(await createBoletosDto);
   }
+
+  async uploadBoletosPdf(pdf: Buffer) {
+    const pdfDoc = await PDFDocument.load(pdf);
+    if (!pdfDoc) {
+      throw new NotFoundException('Conteúdo do pdf não foi encontrado');
+    }
+
+    const totalPages = pdfDoc.getPageCount();
+    for (let i = 0; i < totalPages; i++) {
+      const newPdfDoc = await PDFDocument.create();
+      const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
+      newPdfDoc.addPage(copiedPage);
+
+      const boletos = await this.findAll();
+      const outputFilePath = `uploads/boletos/${boletos[i].id}.pdf`;
+      const pdfBytes = await newPdfDoc.save();
+
+      const ws = createWriteStream(outputFilePath);
+      ws.write(pdfBytes);
+    }
+
+    return { message: 'Arquivo PDF recebido e páginas salvas com sucesso!' };
+  }
+
   async create(createBoletoDto: CreateBoletoDto) {
     return await this.boletoRepository.create(createBoletoDto);
   }
 
-  async findAll(): Promise<BoletoEntity[]> {
-    return await this.boletoRepository.findAll();
+  async findAll(queries?: GetBoletoQuery): Promise<BoletoEntity[]> {
+    const { nome, valor, id_lote } = queries;
+    if (!nome && !valor && !id_lote)
+      return await this.boletoRepository.findAll();
+    return await this.boletoRepository.findAllWithFilters(queries);
   }
 
   async findOne(id: number): Promise<BoletoEntity> {
