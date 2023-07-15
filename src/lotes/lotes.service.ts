@@ -29,8 +29,9 @@ export class LotesService implements OnModuleInit {
   }
 
   async findLoteIdByName(name: string): Promise<number> {
-    const log = await this.lotesRepository.findOneByNameNumberString(name);
-    return log[0].id;
+    const lote = await this.lotesRepository.findOneByNameNumberString(name);
+    if (!lote) throw new NotFoundException(`Lote #${name} not found!`);
+    return lote[0].id;
   }
 
   async findAll() {
@@ -39,7 +40,7 @@ export class LotesService implements OnModuleInit {
 
   async findOne(id: number) {
     const lote = await this.lotesRepository.findOne(id);
-    if (!lote) throw new NotFoundException('Lote not found!');
+    if (!lote) throw new NotFoundException(`Lote #${id} not found!`);
     return lote;
   }
 
