@@ -33,7 +33,7 @@ describe('LotesService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  describe('create method', () => {
+  describe('Create method', () => {
     it('should create a lote', async () => {
       jest
         .spyOn(repository, 'create')
@@ -44,6 +44,7 @@ describe('LotesService', () => {
       expect(newLote.nome).toStrictEqual(expectOutputLote.nome);
     });
   });
+
   describe('Finding lotes', () => {
     it('should list all lotes', async () => {
       const mockLoteRepository = {

@@ -21,6 +21,7 @@ Verifique se as portas 3000 e 3306 da sua máquina estão liberadas. O app irá 
 
 ## Lista dos Desafios Propostos pelo processo seletivo
 
+- [x] Prazo: 4 dias corridos. Data final: 23:59 de 15/07/2023
 - [x] Atividade 1: Receber arquivo csv do síndico e converter os dados para db
 - [x] Atividade 2: Tratar as diferenças entre os dados da Portaria e do Financeiro
 - [x] Atividade 3: Receber o pdf de boletos na ordem proposta pelo síndico e salvar em arquivos separados com nome pelo id.
@@ -31,7 +32,7 @@ Verifique se as portas 3000 e 3306 da sua máquina estão liberadas. O app irá 
 - [x] Extras propostos por mim: Refatorações com aplicação de Princíos SOLID
 - [x] Extras propostos por mim: Utilização do NestJs
 - [x] Extras propostos por mim: Utilização do ORM Prisma
-- [ ] Extras propostos por mim: Testes unitários (Ficou apenas encaminhado)
+- [x] Extras propostos por mim: Testes unitários
 
 ## Instalação
 
