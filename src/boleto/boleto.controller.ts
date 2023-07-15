@@ -11,6 +11,7 @@ import {
   ParseFilePipe,
   FileTypeValidator,
   Query,
+  HttpStatus,
 } from '@nestjs/common';
 import { BoletoService } from './boleto.service';
 import { CreateBoletoDto } from './dto/create-boleto.dto';
@@ -20,11 +21,20 @@ import {
   ApiConsumes,
   ApiOperation,
   ApiQuery,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetBoletoQuery } from './dto/get-query';
 import { CustomParsers } from '../helpers/custom-parser.helper';
+import {
+  CsvsBadRequestResponseSwagger,
+  FindAllRelarioResponseSwagger,
+  GeneratePdfsResponseSwagger,
+  PdfsBadRequestResponseSwagger,
+  RelatorioBadRequestResponseSwagger,
+  SaveCsvResponseSwagger,
+} from './swagger/resposes.swagger';
 
 @Controller('api/boleto')
 @ApiTags('Boletos')
@@ -47,6 +57,16 @@ export class BoletoController {
         },
       },
     },
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Csv salvo com sucesso no banco de dados.',
+    type: SaveCsvResponseSwagger,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Erro no formato, ou padrão do arquivo.',
+    type: CsvsBadRequestResponseSwagger,
   })
   @UseInterceptors(FileInterceptor('file'))
   insertFromCSV(
@@ -76,6 +96,16 @@ export class BoletoController {
         },
       },
     },
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Pdf salvo e arquivos das páginas geradas com sucesso.',
+    type: GeneratePdfsResponseSwagger,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Erro no formato, ou padrão do arquivo.',
+    type: PdfsBadRequestResponseSwagger,
   })
   @UseInterceptors(FileInterceptor('file'))
   async uploadPDF(
@@ -113,6 +143,16 @@ export class BoletoController {
     name: 'relatorio',
     description: 'Opcional. Mas se for usada só aceita o valor 1',
     required: false,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lista ou Relatório retornado com sucesso.',
+    type: FindAllRelarioResponseSwagger,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Erro no formato, ou padrão dos parâmetros.',
+    type: RelatorioBadRequestResponseSwagger,
   })
   async findAll(@Query() query: GetBoletoQuery) {
     const boletos = await this.boletoService.findAll(query);

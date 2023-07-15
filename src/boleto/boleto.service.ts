@@ -12,6 +12,7 @@ import { LotesService } from '../lotes/lotes.service';
 import { PDFDocument } from 'pdf-lib';
 import { createWriteStream } from 'fs';
 import { GetBoletoQuery } from './dto/get-query';
+import { ordemDosBoletos } from '../../downloads/sindico/boletos-ordem-pdf';
 
 @Injectable()
 export class BoletoService {
@@ -57,7 +58,8 @@ export class BoletoService {
         newPdfDoc.addPage(copiedPage);
 
         const boletos = await this.boletoRepository.findAll();
-        const outputFilePath = `uploads/boletos/${boletos[i].id}.pdf`;
+        const boletoNaOrdemDoSindico = boletos[ordemDosBoletos[i]];
+        const outputFilePath = `uploads/boletos/${boletoNaOrdemDoSindico.id}.pdf`;
         const pdfBytes = await newPdfDoc.save();
 
         const ws = createWriteStream(outputFilePath);

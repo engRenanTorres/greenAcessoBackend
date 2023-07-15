@@ -17,6 +17,8 @@ Trabalho do [Renan Torres](https://www.linkedin.com/in/eng-renan-torres/) para o
 
 Para rodar o app é preciso ter o [Docker](https://docs.docker.com/engine/install/) e o seu pluguin [Docker-compose](https://docs.docker.com/compose/install/).
 
+Verifique se as portas 3000 e 3306 da sua máquina estão liberadas. O app irá rodar na 3000 e o BD na 3306
+
 ## Lista dos Desafios Propostos pelo processo seletivo
 
 - [x] Atividade 1: Receber arquivo csv do síndico e converter os dados para db
@@ -46,8 +48,45 @@ Copie os arquivos boleto.pdf e boleto.csv localizados na raíz do projeto para e
 ```bash
 $ docker-compose up --build
 ```
+* É possível que dê erro na ao rodar pela primeira vez, pois o app pode subir enquanto o banco de dados ainda está carregando as informações iniciais.
 
+
+* Se houver erro procurando pacotes do prisma, teste dar um npm install antes de rodar o container.
 ## Rodando o app
+
+Pode utilizar as apis pela própria documentação swagger.
+
+O arquivo de boletos em csv enviado pelo síndico se encontra na raís do projeto com nome de boletos.csv
+
+O arquivo de boletos em pdf enviado pelo síndico se encontra na raís do projeto com nome de boletos.pdf
+
+Os arquivos pdf salvos ficam na pasta uploads/boletos
+
+Siga a documentação para rodar o API. Coloquei os nomes sugeridos para evitar conflitos.
+```bash
+# development
+# A documentação ficará disponível em localhost:3000/api-docs
+# Pode gerenciar o bd pelo prisma client em localhost:5555
+# ou pelo phpmyadmin pelo localhost:8081
+# usuario root senha dbgreen
+```
+## Rodando o app fora do container
+
+Se achar um modo mais fácil encontrar os arquivos de upload, você pode rodar o app fora do container.
+
+Primeiro você terá que alterar no arquivo .env, comentando o endereço do banco de dados. 
+
+Em seguida, no mesmo arquivo, descomente o endereço do banco de dados com o localhost.
+
+Para isso, utilize os seguintes comandos:
+```bash
+npm i
+npm run build
+npm -r nome_modules
+npm i --omit=dev #instala apenas os pacotes de produção.
+npx prisma generate #para rodar as migrations iniciais e gerar as tabelas iniciais
+npm run start
+```
 
 Pode utilizar as apis pela própria documentação swagger.
 
