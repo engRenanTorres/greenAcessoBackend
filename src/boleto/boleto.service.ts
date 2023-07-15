@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBoletoDto } from './dto/create-boleto.dto';
 import { UpdateBoletoDto } from './dto/update-boleto.dto';
 import { BoletosRepository } from './repositories/boletos.repository';
@@ -40,23 +44,27 @@ export class BoletoService {
   }
 
   async uploadBoletosPdf(pdf: Buffer) {
-    const pdfDoc = await PDFDocument.load(pdf);
-    if (!pdfDoc) {
-      throw new NotFoundException('Conteúdo do pdf não foi encontrado');
-    }
+    try {
+      const pdfDoc = await PDFDocument.load(pdf);
+      if (!pdfDoc) {
+        throw new NotFoundException('Conteúdo do pdf não foi encontrado');
+      }
 
-    const totalPages = pdfDoc.getPageCount();
-    for (let i = 0; i < totalPages; i++) {
-      const newPdfDoc = await PDFDocument.create();
-      const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
-      newPdfDoc.addPage(copiedPage);
+      const totalPages = pdfDoc.getPageCount();
+      for (let i = 0; i < totalPages; i++) {
+        const newPdfDoc = await PDFDocument.create();
+        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
+        newPdfDoc.addPage(copiedPage);
 
-      const boletos = await this.findAll();
-      const outputFilePath = `uploads/boletos/${boletos[i].id}.pdf`;
-      const pdfBytes = await newPdfDoc.save();
+        const boletos = await this.boletoRepository.findAll();
+        const outputFilePath = `uploads/boletos/${boletos[i].id}.pdf`;
+        const pdfBytes = await newPdfDoc.save();
 
-      const ws = createWriteStream(outputFilePath);
-      ws.write(pdfBytes);
+        const ws = createWriteStream(outputFilePath);
+        ws.write(pdfBytes);
+      }
+    } catch (err) {
+      throw new ConflictException('Erro ao abrir o pdf');
     }
 
     return { message: 'Arquivo PDF recebido e páginas salvas com sucesso!' };

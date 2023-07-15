@@ -19,9 +19,10 @@ COPY . .
 # Build the application
 #RUN yarn build
 RUN npm run build
+RUN npx prisma generate
 RUN apk add --no-cache bash
 
-RUN npm install -g @nestjs/cli
+#RUN npm install -g @nestjs/cli
 
 RUN rm -r node_modules
 RUN npm install --omit=dev
@@ -36,9 +37,11 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+RUN mkdir uploads
+RUN mkdir uploads/boletos
 
 # Expose the port your Nest.js application listens on
-EXPOSE 3001
+EXPOSE 3000
 
 # Set the command to run your Nest.js application
 CMD ["npm","run", "start"]

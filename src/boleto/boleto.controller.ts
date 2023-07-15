@@ -15,7 +15,13 @@ import {
 import { BoletoService } from './boleto.service';
 import { CreateBoletoDto } from './dto/create-boleto.dto';
 //import { UpdateBoletoDto } from './dto/update-boleto.dto';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetBoletoQuery } from './dto/get-query';
 import { CustomParsers } from '../helpers/custom-parser.helper';
@@ -25,11 +31,23 @@ import { CustomParsers } from '../helpers/custom-parser.helper';
 export class BoletoController {
   constructor(private readonly boletoService: BoletoService) {}
 
-  @Post()
-  create(@Body() createBoletoDto: CreateBoletoDto) {
-    return this.boletoService.create(createBoletoDto);
-  }
   @Post('csv')
+  @ApiOperation({
+    description:
+      'Faz o upload do arquivo csv do Financeiro e salva no bd lincando com o id da Portaria',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('file'))
   insertFromCSV(
     @UploadedFile(
@@ -43,6 +61,22 @@ export class BoletoController {
   }
 
   @Post('upload-pdf')
+  @ApiOperation({
+    description:
+      'Faz o upload do arquivo de boletos na ordem do síndico e salva na pasta uploads/boletos',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('file'))
   async uploadPDF(
     @UploadedFile(
@@ -56,9 +90,25 @@ export class BoletoController {
   }
 
   @Get()
-  @ApiQuery({ name: 'nome', required: false })
-  @ApiQuery({ name: 'valor', required: false })
-  @ApiQuery({ name: 'id_lote', required: false })
+  @ApiOperation({
+    description:
+      'Retorna os boletos desejados com base nas buscas, ou retorna um pdf(bse64) se for inserido a query relatorio=1',
+  })
+  @ApiQuery({
+    name: 'nome',
+    description: 'Opcional, para buscar pelo lote. Só aceita string',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'valor',
+    description: 'Opcional, para buscar pelo lote. Só aceita número',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'id_lote',
+    description: 'Opcional, para buscar pelo lote. Só aceita números',
+    required: false,
+  })
   @ApiQuery({
     name: 'relatorio',
     description: 'Opcional. Mas se for usada só aceita o valor 1',
@@ -73,6 +123,11 @@ export class BoletoController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.boletoService.findOne(+id);
+  }
+
+  @Post()
+  create(@Body() createBoletoDto: CreateBoletoDto) {
+    return this.boletoService.create(createBoletoDto);
   }
 
   /*@Patch(':id')
