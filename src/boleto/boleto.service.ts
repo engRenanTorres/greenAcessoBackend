@@ -20,13 +20,22 @@ export class BoletoService {
     private readonly boletoRepository: BoletosRepository,
     private readonly lotesService: LotesService,
   ) {}
+
   async insertManyFromCsv(csvRaw: string) {
     const boletosRaw = CustomParsers.csvToBoleto(csvRaw);
     if (!boletosRaw)
       throw new NotFoundException(
         'Boletos não encontrados. Verique o padrão do csv',
       );
-    const createBoletosDto: Promise<CreateBoletoDto[]> = Promise.all(
+    const createBoletosDto: Promise<CreateBoletoDto[]> =
+      this.boletoRawToBoletosPortaria(boletosRaw);
+    return await this.boletoRepository.createMany(await createBoletosDto);
+  }
+
+  async boletoRawToBoletosPortaria(
+    boletosRaw: BoletoRaw[],
+  ): Promise<CreateBoletoDto[]> {
+    return Promise.all(
       boletosRaw.map(async (boleto: BoletoRaw) => {
         const idLotePortaria = await this.lotesService.findLoteIdByName(
           boleto.nome_lote,
@@ -41,7 +50,6 @@ export class BoletoService {
         return newBoleto;
       }),
     );
-    return await this.boletoRepository.createMany(await createBoletosDto);
   }
 
   async uploadBoletosPdf(pdf: Buffer) {

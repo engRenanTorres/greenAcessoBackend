@@ -35,6 +35,7 @@ import {
   RelatorioBadRequestResponseSwagger,
   SaveCsvResponseSwagger,
 } from './swagger/resposes.swagger';
+import { BoletoEntity } from './entities/boleto.entity';
 
 @Controller('api/boleto')
 @ApiTags('Boletos')
@@ -154,7 +155,9 @@ export class BoletoController {
     description: 'Erro no formato, ou padrão dos parâmetros.',
     type: RelatorioBadRequestResponseSwagger,
   })
-  async findAll(@Query() query: GetBoletoQuery) {
+  async findAll(
+    @Query() query: GetBoletoQuery,
+  ): Promise<BoletoEntity[] | { base64: string }> {
     const boletos = await this.boletoService.findAll(query);
     if (+query.relatorio !== 1) return boletos;
     return CustomParsers.boletosEntityToBase64(boletos);
